@@ -1,15 +1,14 @@
 import gym
+from visdom_log import VisdomLog
 
 from rl import PolicyGradient
 
 
-def train(episodes=1000, render=False, max_step=2000):
+def train(episodes=2000, render=False, max_step=2000, early_stop=5):
+    logger = VisdomLog("cartpole")
+
     env = gym.make("CartPole-v0")
     env = env.unwrapped
-    print(env.action_space)
-    print(env.observation_space)
-    print(env.observation_space.high)
-    print(env.observation_space.low)
 
     RL = PolicyGradient(
         n_actions=env.action_space.n,
@@ -23,6 +22,7 @@ def train(episodes=1000, render=False, max_step=2000):
     # 学习过程
     RL.net.train()
     running_reward = None
+    finish_count = 0
     for i_episode in range(episodes):
         observation = env.reset()
         step = 1
@@ -38,6 +38,7 @@ def train(episodes=1000, render=False, max_step=2000):
             RL.store_transition(observation, action, reward)
             if done or step >= max_step:
                 ep_rs_sum = sum(RL.ep_rs)
+                logger.line("rewards", ep_rs_sum)
                 if ep_rs_sum >= best_reward:
                     RL.save_net()
                     best_reward = ep_rs_sum
@@ -58,6 +59,12 @@ def train(episodes=1000, render=False, max_step=2000):
             # 智能体探索一步
             observation = observation_
             step += 1
+        if step >= max_step:
+            finish_count += 1
+            if finish_count >= early_stop:
+                break
+        else:
+            finish_count = 0
     env.close()
 
 
