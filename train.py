@@ -38,7 +38,6 @@ def train(episodes=2000, render=False, max_step=2000, early_stop=5):
             RL.store_transition(observation, action, reward)
             if done or step >= max_step:
                 ep_rs_sum = sum(RL.ep_rs)
-                logger.line("rewards", ep_rs_sum)
                 if ep_rs_sum >= best_reward:
                     RL.save_net()
                     best_reward = ep_rs_sum
@@ -46,14 +45,12 @@ def train(episodes=2000, render=False, max_step=2000, early_stop=5):
                     running_reward = ep_rs_sum
                 else:
                     running_reward = running_reward * 0.99 + ep_rs_sum * 0.01
+                loss = RL.learn()
+
                 print(f"episode:{i_episode}, rewards:{int(running_reward)}, current rewards:{int(ep_rs_sum)}")
-                # 每个episode学习一次
-                _vt = RL.learn()
-                # if i_episode == 0:
-                #     plt.plot(vt)
-                #     plt.xlabel('episode steps')
-                #     plt.ylabel('normalized state-action value')
-                #     plt.show()
+                logger.line("rewards", ep_rs_sum)
+                logger.line("running rewards", running_reward)
+                logger.line("loss", loss)
                 break
 
             # 智能体探索一步

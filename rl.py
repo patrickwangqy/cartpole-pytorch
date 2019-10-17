@@ -76,7 +76,7 @@ class PolicyGradient(object):
 
         # 清空episode数据
         self.ep_obs, self.ep_as, self.ep_rs = [], [], []
-        return discounted_ep_rs_norm
+        return loss.detach().cpu().item()
 
     def load_net(self):
         self.net.load_state_dict(torch.load("checkpoints/best.pt"))
@@ -86,6 +86,6 @@ class PolicyGradient(object):
         torch.save(self.net.state_dict(), "checkpoints/best.pt")
 
     def _loss(self, outputs, acts, vt):
-        neg_log_prob: torch.Tensor = F.cross_entropy(outputs, acts, reduction='none')
+        neg_log_prob: torch.Tensor = F.cross_entropy(outputs, acts, reduce=False)
         loss = (neg_log_prob * vt).mean()
         return loss
