@@ -87,8 +87,12 @@ class PolicyGradient(object):
         return r / self.N
 
     def _loss(self, outputs, acts, vt):
-        neg_log_prob: torch.Tensor = F.cross_entropy(outputs, acts, reduce=False)
-        loss = (neg_log_prob * vt).mean()
+        mask = torch.zeros_like(outputs, dtype=torch.bool)
+        mask.scatter_(-1, acts.unsqueeze(dim=-1), True)
+        loss = -torch.log(outputs[mask]) * vt
+        loss = loss.sum()
+        # neg_log_prob: torch.Tensor = F.cross_entropy(outputs, acts, reduce=False)
+        # loss = (neg_log_prob * vt).mean()
         return loss
 
     def _calc_episode_discount_rewards(self, index, is_norm=True):
