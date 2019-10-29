@@ -20,7 +20,7 @@ class VisdomLineLog(object):
 class VisdomLog(object):
     def __init__(self, name: str):
         self.name = name
-        self.vis = visdom.Visdom(env=self.name)
+        self.vis = visdom.Visdom(env=self.name, log_to_filename=f"D:\\Logs\\Visdom\\{self.name}.json")
         self.log_dict = {}
 
     def line(self, name: str, value):
